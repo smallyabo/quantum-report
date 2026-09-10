@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>量子科普视频 · 账号维度分析报告</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root { --navy:#1B3A5C; --navy2:#2E5A88; --amber:#E08E45; --teal:#4E9A9A; --ink:#2B3A48; --mut:#7A8B99; --line:#E3EAF0; --bg:#F7F9FB; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei","Source Han Sans SC",sans-serif; background:var(--bg); color:var(--ink); }
+  nav { position:sticky; top:0; z-index:50; background:rgba(255,255,255,.88); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  nav .wrap { max-width:1080px; margin:0 auto; display:flex; gap:2px; overflow-x:auto; padding:10px 16px; align-items:center; }
+  nav .brand { font-weight:700; font-size:14px; color:var(--navy); margin-right:12px; white-space:nowrap; }
+  nav a { flex-shrink:0; padding:5px 10px; font-size:13px; color:var(--mut); text-decoration:none; border-radius:6px; }
+  nav a:hover { background:#EFF3F7; color:var(--navy); }
+  header.hero { background:linear-gradient(135deg,#14273E 0%,#1B3A5C 55%,#274B73 100%); color:#fff; }
+  header .wrap { max-width:1080px; margin:0 auto; padding:56px 16px 48px; }
+  .kicker { font-family:ui-monospace,Consolas,monospace; font-size:11px; letter-spacing:.3em; color:#F2C185; margin-bottom:12px; }
+  h1 { font-size:clamp(24px,4vw,36px); line-height:1.35; letter-spacing:-.5px; max-width:760px; }
+  .sub { margin-top:14px; font-size:14px; line-height:1.8; color:#B9C8D8; max-width:680px; }
+  .kpis { margin-top:34px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .kpi { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:14px 16px; }
+  .kpi b { display:block; font-size:24px; color:#F2C185; letter-spacing:-.5px; }
+  .kpi span { font-size:12px; color:#B9C8D8; }
+  main { max-width:1080px; margin:0 auto; padding:0 16px; }
+  section { padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:60px; }
+  .sec-head { display:flex; align-items:baseline; gap:12px; margin-bottom:6px; }
+  .sec-head .idx { font-family:ui-monospace,Consolas,monospace; font-size:13px; font-weight:700; letter-spacing:2px; color:#C67F3B; }
+  h2 { font-size:clamp(19px,2.6vw,26px); letter-spacing:-.3px; }
+  .lead { font-size:13.5px; color:var(--mut); line-height:1.8; margin:6px 0 22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:0 1px 3px rgba(27,58,92,.05); }
+  .chart { width:100%; }
+  .grid2 { display:grid; gap:14px; } @media(min-width:860px){ .grid2{grid-template-columns:1fr 1fr;} }
+  .grid3 { display:grid; gap:14px; } @media(min-width:860px){ .grid3{grid-template-columns:1fr 1fr 1fr;} }
+  .toggle { display:inline-flex; background:#EDF1F5; border:1px solid var(--line); border-radius:9px; padding:3px; margin-bottom:12px; }
+  .toggle button { border:0; background:transparent; padding:6px 14px; font-size:13px; color:var(--mut); border-radius:7px; cursor:pointer; font-family:inherit; }
+  .toggle button.on { background:#fff; color:var(--navy); font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  table.dt { width:100%; border-collapse:collapse; font-size:13px; }
+  table.dt th { background:var(--navy); color:#fff; text-align:left; padding:10px 12px; font-weight:500; font-size:12.5px; white-space:nowrap; position:sticky; top:0; }
+  table.dt th.sortable { cursor:pointer; } table.dt th.sortable:hover { background:#27496E; }
+  table.dt td { padding:8px 12px; border-bottom:1px solid #EEF2F5; white-space:nowrap; }
+  table.dt tr:nth-child(even) td { background:#F7FAFC; }
+  .tblwrap { overflow:auto; max-height:520px; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  ul.f { margin-top:18px; list-style:none; }
+  ul.f li { position:relative; padding-left:18px; font-size:14.5px; line-height:1.9; color:#41505F; }
+  ul.f li::before { content:""; position:absolute; left:0; top:.85em; width:6px; height:6px; border-radius:50%; background:var(--amber); }
+  ul.f b { color:var(--navy); }
+  .tag { display:inline-block; background:#EEF2F6; color:#5A6B7B; font-size:11.5px; border-radius:99px; padding:2px 9px; }
+  .searchbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
+  .searchbar input,.searchbar select { border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:13px; background:#fff; color:var(--ink); font-family:inherit; }
+  .searchbar input { flex:1; min-width:180px; outline:none; } .searchbar input:focus { border-color:var(--navy2); }
+  .stat-note { font-size:13px; color:var(--mut); }
+  .stat-note b { color:var(--navy); }
+  .concl { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 1px 3px rgba(27,58,92,.05); }
+  .concl h3 { font-size:15px; margin:8px 0 6px; }
+  .concl p { font-size:13.5px; line-height:1.8; color:#5A6B7B; }
+  .num { display:inline-flex; width:24px; height:24px; border-radius:7px; background:var(--navy); color:#fff; font-size:12px; font-weight:700; align-items:center; justify-content:center; }
+  footer { background:#fff; border-top:1px solid var(--line); padding:26px 16px; text-align:center; font-size:12px; color:#9AA8B4; line-height:1.9; }
+  .nochart { padding:40px; text-align:center; color:var(--mut); font-size:14px; }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <span class="brand">量子科普 · 账号分析</span>
+  <a href="#eco">生态</a><a href="#conc">集中度</a><a href="#quad">四象限</a><a href="#like">认可度</a>
+  <a href="#persist">持续性</a><a href="#theme">选题分工</a><a href="#data">账号明细</a><a href="#concl">结论</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <p class="kicker">BILIBILI QUANTUM SCIENCE · ACCOUNT ANALYSIS · 2024–2025</p>
+  <h1>发布账号维度专项分析报告</h1>
+  <p class="sub">基于 2024–2025 年 B 站 155 条 10 万+ 量子科普视频，透视 70 个账号的生态结构、流量集中度、产量质量关系、认可度与持续力。</p>
+  <div class="kpis">
+    <div class="kpi"><b>70</b><span>入榜账号（个）</span></div>
+    <div class="kpi"><b>155</b><span>样本视频（条）</span></div>
+    <div class="kpi"><b>63.3%</b><span>TOP10 账号流量占比</span></div>
+    <div class="kpi"><b>62.9%</b><span>仅 1 条入榜的账号占比</span></div>
+    <div class="kpi"><b>13</b><span>两年持续出圈账号（个）</span></div>
+  </div>
+</div></header>
+
+<main>
+
+<section id="eco">
+  <div class="sec-head"><span class="idx">01</span><h2>账号生态：典型的「长尾市场」</h2></div>
+  <p class="lead">近三分之二账号只有一次出圈经历；5 个高产账号（7 条以上）以 7.1% 的账号数拿走 46.7% 的流量。</p>
+  <div class="card"><div id="c_eco" class="chart" style="height:340px"></div></div>
+  <ul class="f">
+    <li>「仅 1 条入榜」的 44 个账号合计贡献 1,587 万播放（20.0%）——量子科普 10 万+ 对多数创作者是偶发事件；</li>
+    <li>「7 条以上」的 5 个账号合计 3,712 万播放（46.7%）——赛道的「入场券」与「常驻权」是两回事。</li>
+  </ul>
+</section>
+
+<section id="conc">
+  <div class="sec-head"><span class="idx">02</span><h2>集中度：头部效应显著但未到垄断</h2></div>
+  <p class="lead">拖动图表下方滑块可缩放查看中腰部账号；虚线为累计占比 63.3%（TOP10 位置）。</p>
+  <div class="card"><div id="c_pareto" class="chart" style="height:400px"></div></div>
+  <ul class="f">
+    <li>TOP1 科学认识论独占 12.3%；TOP3 占 32.8%；TOP20 占 78.4%；</li>
+    <li>第 11–70 名仍贡献 36.7% 流量，量子科普尚未形成绝对垄断账号，<b>中腰部仍有生存空间</b>。</li>
+  </ul>
+</section>
+
+<section id="quad">
+  <div class="sec-head"><span class="idx">03</span><h2>账号四象限：产量 × 单条质量</h2></div>
+  <p class="lead">横轴为视频数量（产量），纵轴为平均播放量（单条质量），气泡大小为点赞率；悬停查看账号详情。</p>
+  <div class="card"><div id="c_quad" class="chart" style="height:460px"></div></div>
+  <ul class="f">
+    <li><b>科学认识论</b>是唯一进入「高产 × 高质」区的账号（9 条 / 均 108.7 万）；</li>
+    <li>产量与单条质量无显著负相关——「系列化」与「爆款率」可以兼得，分水岭在于<b>可复制的选题方法论</b>。</li>
+  </ul>
+</section>
+
+<section id="like">
+  <div class="sec-head"><span class="idx">04</span><h2>认可度：「叫好」与「叫座」的差异</h2></div>
+  <p class="lead">按点赞率排序（可切换入榜门槛），右图为「平均播放 × 点赞率」散点（≥2 条账号）。</p>
+  <div class="toggle" id="likeToggle">
+    <button data-min="1">全部账号</button><button data-min="2" class="on">≥2 条</button><button data-min="3">≥3 条</button>
+  </div>
+  <div class="grid2">
+    <div class="card"><div id="c_like" class="chart" style="height:400px"></div></div>
+    <div class="card"><div id="c_likeScatter" class="chart" style="height:400px"></div></div>
+  </div>
+  <ul class="f">
+    <li><b>科学认识论</b>同时进入流量榜 TOP1 与点赞率榜 TOP3（9.70%），兼顾规模与口碑；</li>
+    <li>靠谱百科菌均播放 233.8 万但点赞率仅 0.31%——猎奇标题带来「看过即走」的流量；</li>
+    <li>机构号科学网点赞率 26.67%，体现权威背书内容的强认同属性。</li>
+  </ul>
+</section>
+
+<section id="persist">
+  <div class="sec-head"><span class="idx">05</span><h2>持续性：仅 13 个账号两年均有 10 万+</h2></div>
+  <p class="lead">70 个账号中仅 18.6% 具备跨年持续产出爆款的能力；2025 年头部格局明显更替。</p>
+  <div class="card"><div id="c_year" class="chart" style="height:380px"></div></div>
+  <ul class="f">
+    <li><b>科学透镜</b>爆发式增长（3→13 条）成为 2025 年产量王；2024 年产量王浮世叁千问大幅收缩（12→3 条）；</li>
+    <li>墨子沙龙、科学网等机构背景账号稳定在场，是赛道的「压舱石」。</li>
+  </ul>
+</section>
+
+<section id="theme">
+  <div class="sec-head"><span class="idx">06</span><h2>头部账号的选题分工</h2></div>
+  <p class="lead">TOP8 账号的内容主题构成，可切换「条数 / 占比」视角。</p>
+  <div class="toggle" id="themeToggle">
+    <button data-m="count" class="on">条数</button><button data-m="pct">占比（%）</button>
+  </div>
+  <div class="card"><div id="c_theme" class="chart" style="height:420px"></div></div>
+  <ul class="f">
+    <li>科学透镜 81% 押注前沿速递（热点专业户）；浮世叁千问主打基础概念系列；科学认识论为全能型；</li>
+    <li>头部账号「人设-选题」绑定清晰，新账号正面同质竞争胜率较低。</li>
+  </ul>
+</section>
+
+<section id="data">
+  <div class="sec-head"><span class="idx">07</span><h2>账号明细：70 个账号全量检索</h2></div>
+  <p class="lead">点击表头排序，支持名称搜索与最低产量筛选。</p>
+  <div class="searchbar">
+    <input id="q" type="text" placeholder="搜索账号名…">
+    <select id="minN">
+      <option value="1">全部产量</option><option value="2">≥2 条</option><option value="3">≥3 条</option><option value="5">≥5 条</option>
+    </select>
+    <span class="stat-note" id="statNote"></span>
+  </div>
+  <div class="tblwrap"><table class="dt" id="acctTable">
+    <thead><tr>
+      <th>#</th><th class="sortable" data-k="a">账号</th><th class="sortable" data-k="n">视频数</th>
+      <th class="sortable" data-k="v">总播放(万)</th><th class="sortable" data-k="avg">均播放(万)</th>
+      <th class="sortable" data-k="max">最高(万)</th><th class="sortable" data-k="lr">点赞率(%)</th>
+      <th>2024 / 2025</th><th>主阵地</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<section id="concl">
+  <div class="sec-head"><span class="idx">08</span><h2>结论</h2></div>
+  <p class="lead">四条账号层面的核心判断。</p>
+  <div class="grid2">
+    <div class="concl"><span class="num">1</span><h3>集中但未固化</h3><p>TOP10 占 63.3% 流量，但 2025 年头部已发生更替（科学透镜取代浮世叁千问成为产量王），格局仍在流动。</p></div>
+    <div class="concl"><span class="num">2</span><h3>最优模型 = 科学认识论</h3><p>产量（9 条）、单条质量（108.7 万）、认可度（9.70%）三项全优，「超长深度 + 故事叙事」是当前最可借鉴的范本。</p></div>
+    <div class="concl"><span class="num">3</span><h3>警惕猎奇流量陷阱</h3><p>靠谱百科菌均播放 233.8 万、点赞率仅 0.31%——流量与认可可以极端背离，单追播放会损害账号长期价值。</p></div>
+    <div class="concl"><span class="num">4</span><h3>持续力是稀缺壁垒</h3><p>82% 的账号无法连续两年产出 10 万+，选题方法论的系统化比单条爆款更有壁垒。</p></div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  数据来源：《2024-2025年B站10万+量子科普视频统计.xlsx》· 样本 155 条 / 账号 70 个 · 生成于 2026-09-09<br>
+  指标口径：点赞率 = 总点赞量 ÷ 总播放量 × 100% · 图表基于 ECharts 5 渲染
+</footer>
+
+<script>
+const DATA = {"accounts": [{"a": "科学认识论", "n": 9, "v": 978.4, "avg": 108.7, "l": 95.0, "lr": 9.7, "max": 548.6, "y24": 6, "y25": 3, "th": {"基础概念解析": 5, "科学史与人物": 1, "辟谣与反伪科学": 1, "量子计算": 1, "科幻与趣味话题": 1}}, {"a": "浮世叁千问", "n": 15, "v": 978.2, "avg": 65.2, "l": 48.1, "lr": 4.92, "max": 181.8, "y24": 12, "y25": 3, "th": {"基础概念解析": 7, "量子计算": 3, "经典实验演示": 2, "辟谣与反伪科学": 1, "科学史与人物": 1, "科幻与趣味话题": 1}}, {"a": "科学透镜", "n": 16, "v": 650.5, "avg": 40.7, "l": 25.7, "lr": 3.95, "max": 122.7, "y24": 3, "y25": 13, "th": {"前沿科研速递": 13, "量子通信与安全": 2, "产业应用与社会生活": 1}}, {"a": "新石器公园", "n": 7, "v": 592.2, "avg": 84.6, "l": 20.4, "lr": 3.45, "max": 144.2, "y24": 5, "y25": 2, "th": {"科幻与趣味话题": 2, "基础概念解析": 2, "科学史与人物": 2, "量子计算": 1}}, {"a": "Linvo说宇宙", "n": 7, "v": 512.9, "avg": 73.3, "l": 17.4, "lr": 3.39, "max": 118.0, "y24": 2, "y25": 5, "th": {"基础概念解析": 4, "前沿科研速递": 2, "科幻与趣味话题": 1}}, {"a": "靠谱百科菌", "n": 2, "v": 467.5, "avg": 233.8, "l": 1.3, "lr": 0.27, "max": 418.6, "y24": 0, "y25": 2, "th": {"基础概念解析": 2}}, {"a": "毕的二阶导", "n": 2, "v": 265.5, "avg": 132.8, "l": 23.5, "lr": 8.85, "max": 167.0, "y24": 1, "y25": 1, "th": {"前沿科研速递": 2}}, {"a": "大圆镜科普", "n": 2, "v": 206.9, "avg": 103.5, "l": 23.2, "lr": 11.21, "max": 150.0, "y24": 0, "y25": 2, "th": {"科学史与人物": 2}}, {"a": "Veritasium真理元素", "n": 3, "v": 188.9, "avg": 63.0, "l": 9.4, "lr": 4.98, "max": 94.2, "y24": 0, "y25": 3, "th": {"科学史与人物": 1, "量子计算": 1, "基础概念解析": 1}}, {"a": "尽整没用的", "n": 2, "v": 186.3, "avg": 93.2, "l": 7.3, "lr": 3.92, "max": 113.7, "y24": 2, "y25": 0, "th": {"经典实验演示": 2}}, {"a": "漫士沉思录", "n": 2, "v": 176.1, "avg": 88.0, "l": 7.4, "lr": 4.2, "max": 135.1, "y24": 0, "y25": 2, "th": {"前沿科研速递": 1, "量子计算": 1}}, {"a": "银狐是仓鼠", "n": 1, "v": 161.7, "avg": 161.7, "l": 21.5, "lr": 13.3, "max": 161.7, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "道可道Science-硬核科普", "n": 4, "v": 135.3, "avg": 33.8, "l": 5.9, "lr": 4.38, "max": 53.8, "y24": 0, "y25": 4, "th": {"基础概念解析": 2, "科幻与趣味话题": 1, "科学史与人物": 1}}, {"a": "火舞探秘", "n": 1, "v": 128.5, "avg": 128.5, "l": 3.3, "lr": 2.57, "max": 128.5, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "从壹-开始", "n": 3, "v": 122.6, "avg": 40.9, "l": 2.0, "lr": 1.66, "max": 79.4, "y24": 0, "y25": 3, "th": {"基础概念解析": 1, "量子精密测量": 1, "科幻与趣味话题": 1}}, {"a": "墨子沙龙", "n": 4, "v": 113.5, "avg": 28.4, "l": 1.1, "lr": 0.99, "max": 39.6, "y24": 1, "y25": 3, "th": {"量子计算": 2, "前沿科研速递": 1, "基础概念解析": 1}}, {"a": "光子盒", "n": 1, "v": 94.1, "avg": 94.1, "l": 0.8, "lr": 0.89, "max": 94.1, "y24": 0, "y25": 1, "th": {"经典实验演示": 1}}, {"a": "多尔多阔霍", "n": 1, "v": 90.6, "avg": 90.6, "l": 2.8, "lr": 3.09, "max": 90.6, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "科学漫聊", "n": 5, "v": 88.9, "avg": 17.8, "l": 2.2, "lr": 2.44, "max": 20.6, "y24": 3, "y25": 2, "th": {"基础概念解析": 3, "科幻与趣味话题": 1, "经典实验演示": 1}}, {"a": "科学探索飞船", "n": 3, "v": 86.8, "avg": 28.9, "l": 2.8, "lr": 3.23, "max": 54.6, "y24": 1, "y25": 2, "th": {"基础概念解析": 2, "科幻与趣味话题": 1}}, {"a": "赤石神殿", "n": 4, "v": 83.7, "avg": 20.9, "l": 3.2, "lr": 3.8, "max": 34.0, "y24": 1, "y25": 3, "th": {"前沿科研速递": 2, "辟谣与反伪科学": 1, "科学史与人物": 1}}, {"a": "小学科学SSR", "n": 3, "v": 83.4, "avg": 27.8, "l": 4.1, "lr": 4.88, "max": 41.3, "y24": 2, "y25": 1, "th": {"基础概念解析": 2, "科幻与趣味话题": 1}}, {"a": "科学网", "n": 2, "v": 82.5, "avg": 41.2, "l": 22.0, "lr": 26.67, "max": 47.7, "y24": 1, "y25": 1, "th": {"前沿科研速递": 1, "科学史与人物": 1}}, {"a": "上知天文", "n": 1, "v": 81.0, "avg": 81.0, "l": 2.8, "lr": 3.46, "max": 81.0, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "悟理6", "n": 2, "v": 71.3, "avg": 35.6, "l": 6.2, "lr": 8.7, "max": 56.4, "y24": 0, "y25": 2, "th": {"基础概念解析": 2}}, {"a": "今日科技观察", "n": 1, "v": 66.6, "avg": 66.6, "l": 2.2, "lr": 3.3, "max": 66.6, "y24": 0, "y25": 1, "th": {"辟谣与反伪科学": 1}}, {"a": "喵教授ProfessorMeow", "n": 2, "v": 59.8, "avg": 29.9, "l": 0.9, "lr": 1.51, "max": 48.6, "y24": 0, "y25": 2, "th": {"前沿科研速递": 1, "科学史与人物": 1}}, {"a": "冷科普", "n": 1, "v": 56.9, "avg": 56.9, "l": 2.4, "lr": 4.22, "max": 56.9, "y24": 0, "y25": 1, "th": {"产业应用与社会生活": 1}}, {"a": "安东尼2001", "n": 2, "v": 55.2, "avg": 27.6, "l": 3.5, "lr": 6.34, "max": 36.9, "y24": 1, "y25": 1, "th": {"基础概念解析": 1, "量子通信与安全": 1}}, {"a": "科学小神牛", "n": 1, "v": 52.1, "avg": 52.1, "l": 0.3, "lr": 0.56, "max": 52.1, "y24": 0, "y25": 1, "th": {"科幻与趣味话题": 1}}, {"a": "黑纹白斑马", "n": 3, "v": 51.6, "avg": 17.2, "l": 1.2, "lr": 2.33, "max": 18.5, "y24": 0, "y25": 3, "th": {"基础概念解析": 2, "量子计算": 1}}, {"a": "蒸気火鸡", "n": 1, "v": 49.6, "avg": 49.6, "l": 2.1, "lr": 4.23, "max": 49.6, "y24": 1, "y25": 0, "th": {"前沿科研速递": 1}}, {"a": "房叔叨叨叨", "n": 1, "v": 47.1, "avg": 47.1, "l": 2.2, "lr": 4.67, "max": 47.1, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "懒惰的吗喽", "n": 1, "v": 45.6, "avg": 45.6, "l": 5.7, "lr": 12.5, "max": 45.6, "y24": 0, "y25": 1, "th": {"科学史与人物": 1}}, {"a": "李论科学", "n": 1, "v": 44.9, "avg": 44.9, "l": 2.1, "lr": 4.68, "max": 44.9, "y24": 1, "y25": 0, "th": {"前沿科研速递": 1}}, {"a": "艾栗夏", "n": 1, "v": 44.9, "avg": 44.9, "l": 1.4, "lr": 3.12, "max": 44.9, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "探秘猎奇社", "n": 3, "v": 40.9, "avg": 13.6, "l": 0.7, "lr": 1.78, "max": 16.1, "y24": 0, "y25": 3, "th": {"基础概念解析": 3}}, {"a": "宇宙壹号", "n": 2, "v": 40.6, "avg": 20.3, "l": 1.5, "lr": 3.74, "max": 28.6, "y24": 0, "y25": 2, "th": {"基础概念解析": 2}}, {"a": "科学声音", "n": 1, "v": 40.0, "avg": 40.0, "l": 1.7, "lr": 4.25, "max": 40.0, "y24": 0, "y25": 1, "th": {"量子精密测量": 1}}, {"a": "芝士怎么说", "n": 1, "v": 39.3, "avg": 39.3, "l": 5.5, "lr": 13.99, "max": 39.3, "y24": 0, "y25": 1, "th": {"科幻与趣味话题": 1}}, {"a": "雨果实验室", "n": 1, "v": 36.8, "avg": 36.8, "l": 0.2, "lr": 0.54, "max": 36.8, "y24": 0, "y25": 1, "th": {"产业应用与社会生活": 1}}, {"a": "有趣的数学F", "n": 1, "v": 36.2, "avg": 36.2, "l": 6.2, "lr": 17.13, "max": 36.2, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "宇宙科普实验室", "n": 2, "v": 34.8, "avg": 17.4, "l": 0.7, "lr": 1.9, "max": 21.5, "y24": 0, "y25": 2, "th": {"基础概念解析": 1, "量子精密测量": 1}}, {"a": "三个老爸实验室吖", "n": 1, "v": 31.0, "avg": 31.0, "l": 1.1, "lr": 3.55, "max": 31.0, "y24": 1, "y25": 0, "th": {"基础概念解析": 1}}, {"a": "陀宇宙", "n": 1, "v": 28.4, "avg": 28.4, "l": 1.1, "lr": 3.87, "max": 28.4, "y24": 1, "y25": 0, "th": {"科幻与趣味话题": 1}}, {"a": "宇宙探索馆o", "n": 1, "v": 27.5, "avg": 27.5, "l": 0.3, "lr": 1.2, "max": 27.5, "y24": 0, "y25": 1, "th": {"科幻与趣味话题": 1}}, {"a": "新华社", "n": 1, "v": 27.2, "avg": 27.2, "l": 4.0, "lr": 14.71, "max": 27.2, "y24": 1, "y25": 0, "th": {"前沿科研速递": 1}}, {"a": "科普中国", "n": 1, "v": 23.6, "avg": 23.6, "l": 1.2, "lr": 5.08, "max": 23.6, "y24": 1, "y25": 0, "th": {"量子计算": 1}}, {"a": "Kurzgesagt-科普", "n": 1, "v": 20.5, "avg": 20.5, "l": 0.8, "lr": 3.9, "max": 20.5, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "小知识砖家李一行", "n": 1, "v": 20.5, "avg": 20.5, "l": 0.0, "lr": 0.05, "max": 20.5, "y24": 1, "y25": 0, "th": {"基础概念解析": 1}}, {"a": "环球异事Eye", "n": 1, "v": 20.2, "avg": 20.2, "l": 0.3, "lr": 1.49, "max": 20.2, "y24": 1, "y25": 0, "th": {"科幻与趣味话题": 1}}, {"a": "新华网", "n": 1, "v": 19.5, "avg": 19.5, "l": 3.5, "lr": 17.95, "max": 19.5, "y24": 1, "y25": 0, "th": {"前沿科研速递": 1}}, {"a": "ZUS灼视", "n": 1, "v": 19.1, "avg": 19.1, "l": 0.6, "lr": 3.25, "max": 19.1, "y24": 0, "y25": 1, "th": {"科幻与趣味话题": 1}}, {"a": "帆雨动画", "n": 1, "v": 18.9, "avg": 18.9, "l": 0.5, "lr": 2.65, "max": 18.9, "y24": 1, "y25": 0, "th": {"经典实验演示": 1}}, {"a": "清图--", "n": 1, "v": 18.5, "avg": 18.5, "l": 0.5, "lr": 2.49, "max": 18.5, "y24": 0, "y25": 1, "th": {"科学史与人物": 1}}, {"a": "Science科普见闻", "n": 1, "v": 17.1, "avg": 17.1, "l": 0.7, "lr": 3.92, "max": 17.1, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "快看", "n": 1, "v": 16.9, "avg": 16.9, "l": 1.4, "lr": 8.28, "max": 16.9, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "Kerry哲学", "n": 1, "v": 15.9, "avg": 15.9, "l": 0.4, "lr": 2.77, "max": 15.9, "y24": 1, "y25": 0, "th": {"基础概念解析": 1}}, {"a": "Rap_科学", "n": 1, "v": 14.8, "avg": 14.8, "l": 1.4, "lr": 9.46, "max": 14.8, "y24": 0, "y25": 1, "th": {"科学史与人物": 1}}, {"a": "宇宙-视觉", "n": 1, "v": 14.5, "avg": 14.5, "l": 0.1, "lr": 0.76, "max": 14.5, "y24": 0, "y25": 1, "th": {"量子精密测量": 1}}, {"a": "博士萌", "n": 1, "v": 14.2, "avg": 14.2, "l": 0.7, "lr": 5.07, "max": 14.2, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "泰勒猫爱丽丝", "n": 1, "v": 14.2, "avg": 14.2, "l": 0.6, "lr": 4.44, "max": 14.2, "y24": 1, "y25": 0, "th": {"科学史与人物": 1}}, {"a": "斯文哥翻身记", "n": 1, "v": 11.9, "avg": 11.9, "l": 1.1, "lr": 9.24, "max": 11.9, "y24": 1, "y25": 0, "th": {"前沿科研速递": 1}}, {"a": "赛博保安_寒某某", "n": 1, "v": 11.6, "avg": 11.6, "l": 0.2, "lr": 1.47, "max": 11.6, "y24": 0, "y25": 1, "th": {"量子通信与安全": 1}}, {"a": "の揭秘未知の", "n": 1, "v": 11.3, "avg": 11.3, "l": 0.1, "lr": 0.88, "max": 11.3, "y24": 1, "y25": 0, "th": {"科幻与趣味话题": 1}}, {"a": "胡小闲", "n": 1, "v": 11.1, "avg": 11.1, "l": 0.1, "lr": 1.17, "max": 11.1, "y24": 0, "y25": 1, "th": {"科学史与人物": 1}}, {"a": "老高与小茉热门视频", "n": 1, "v": 10.9, "avg": 10.9, "l": 0.1, "lr": 0.92, "max": 10.9, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "x戈岚", "n": 1, "v": 10.7, "avg": 10.7, "l": 0.3, "lr": 3.27, "max": 10.7, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}, {"a": "THEODELL", "n": 1, "v": 10.3, "avg": 10.3, "l": 0.2, "lr": 1.94, "max": 10.3, "y24": 0, "y25": 1, "th": {"前沿科研速递": 1}}, {"a": "二次元的中科院物理所", "n": 1, "v": 10.3, "avg": 10.3, "l": 0.6, "lr": 5.44, "max": 10.3, "y24": 0, "y25": 1, "th": {"基础概念解析": 1}}], "themes": ["基础概念解析", "前沿科研速递", "科幻与趣味话题", "科学史与人物", "量子计算", "经典实验演示", "辟谣与反伪科学", "量子精密测量", "量子通信与安全", "产业应用与社会生活"]};
+const ACC = DATA.accounts;
+const THEMES = DATA.themes;
+const NAVY = '#2E5A88', AMBER = '#E08E45', TEAL = '#4E9A9A';
+const PAL = ['#2E5A88','#E08E45','#4E9A9A','#8A6FB8','#C0504D','#6B8F71','#B8845F','#5B7DB1','#C9A227','#7A8B99'];
+const TIP = { backgroundColor:'rgba(27,58,92,.92)', borderWidth:0, textStyle:{color:'#fff',fontSize:13} };
+const AXL = { axisLabel:{color:'#5A6B7B',fontSize:12}, axisLine:{lineStyle:{color:'#D5DEE6'}} };
+const SPLIT = { splitLine:{lineStyle:{color:'#EDF1F5'}} };
+const charts = [];
+function mk(id, opt){ const c = echarts.init(document.getElementById(id)); c.setOption(opt); charts.push(c); return c; }
+window.addEventListener('resize', () => charts.forEach(c => c.resize()));
+
+/* 01 生态分层 */
+(function(){
+  const tiers = [
+    {label:'仅1条', lo:1, hi:1}, {label:'2-3条', lo:2, hi:3},
+    {label:'4-6条', lo:4, hi:6}, {label:'7条以上', lo:7, hi:999},
+  ].map(t => {
+    const sub = ACC.filter(a => a.n >= t.lo && a.n <= t.hi);
+    return { label:t.label, cnt:sub.length, views:+sub.reduce((s,a)=>s+a.v,0).toFixed(1) };
+  });
+  mk('c_eco', {
+    tooltip:{trigger:'axis', ...TIP},
+    legend:{top:0, textStyle:{color:'#5A6B7B'}},
+    grid:{left:60,right:70,top:44,bottom:34},
+    xAxis:{type:'category', data:tiers.map(t=>t.label), ...AXL},
+    yAxis:[
+      {type:'value', name:'账号数（个）', ...AXL, ...SPLIT},
+      {type:'value', name:'流量占比（%）', ...AXL, splitLine:{show:false}, max:60},
+    ],
+    series:[
+      {name:'账号数', type:'bar', data:tiers.map((t,i)=>({value:t.cnt, itemStyle:{color:PAL[i], borderRadius:[5,5,0,0]}})),
+       barWidth:46, label:{show:true, position:'top', color:'#5A6B7B'}},
+      {name:'流量占比', type:'line', yAxisIndex:1, data:tiers.map(t=>+(t.views/ACC.reduce((s,a)=>s+a.v,0)*100).toFixed(1)),
+       smooth:true, symbolSize:9, lineStyle:{width:3,color:AMBER}, itemStyle:{color:AMBER}, label:{show:true, color:AMBER, formatter:'{c}%'}},
+    ],
+  });
+})();
+
+/* 02 帕累托 */
+(function(){
+  const total = ACC.reduce((s,a)=>s+a.v,0);
+  let cum = 0;
+  const cumPct = ACC.map(a => { cum += a.v; return +(cum/total*100).toFixed(1); });
+  mk('c_pareto', {
+    tooltip:{trigger:'axis', ...TIP, formatter: ps => {
+      const i = ps[0].dataIndex, a = ACC[i];
+      return `<b>${a.a}</b><br/>总播放：${a.v} 万<br/>视频数：${a.n} 条<br/>累计占比：${cumPct[i]}%`;
+    }},
+    grid:{left:64,right:64,top:30,bottom:64},
+    xAxis:{type:'category', data:ACC.map(a=>a.a), ...AXL, axisLabel:{show:false}},
+    yAxis:[
+      {type:'value', name:'总播放量（万）', ...AXL, ...SPLIT},
+      {type:'value', name:'累计占比（%）', ...AXL, splitLine:{show:false}, max:100},
+    ],
+    dataZoom:[{type:'slider', bottom:8, height:20, borderColor:'#D5DEE6', fillerColor:'rgba(46,90,136,.12)'}],
+    series:[
+      {name:'总播放量', type:'bar', data:ACC.map(a=>a.v), itemStyle:{color:NAVY, borderRadius:[2,2,0,0]}, barMaxWidth:22},
+      {name:'累计占比', type:'line', yAxisIndex:1, data:cumPct, symbol:'none', lineStyle:{width:2.5,color:AMBER}, itemStyle:{color:AMBER},
+       markLine:{silent:true, symbol:'none', data:[{yAxis:63.3}], lineStyle:{color:'#C67F3B',type:'dashed'},
+                 label:{formatter:'TOP10 = 63.3%', color:'#C67F3B', fontSize:11}}},
+    ],
+  });
+})();
+
+/* 03 四象限 */
+(function(){
+  const medV = 51.2;
+  mk('c_quad', {
+    tooltip:{...TIP, formatter: p => {
+      const a = p.data.meta;
+      return `<b>${a.a}</b><br/>视频数：${a.n} 条<br/>平均播放：${a.avg} 万<br/>点赞率：${a.lr}%<br/>总播放：${a.v} 万`;
+    }},
+    grid:{left:64,right:30,top:30,bottom:50},
+    xAxis:{type:'value', name:'视频数量（条）— 产量', nameLocation:'middle', nameGap:30, ...AXL, ...SPLIT},
+    yAxis:{type:'value', name:'平均播放量（万）', ...AXL, ...SPLIT},
+    series:[{
+      type:'scatter',
+      data: ACC.map(a => ({ value:[a.n, a.avg], meta:a, symbolSize: Math.min(8 + a.lr*2.2, 34) })),
+      itemStyle:{color:NAVY, opacity:.6},
+      emphasis:{itemStyle:{color:AMBER, opacity:.95}},
+      label:{show:true, position:'top', fontSize:10, color:'#5A6B7B',
+             formatter: p => ['科学认识论','浮世叁千问','科学透镜','靠谱百科菌','毕的二阶导','大圆镜科普','新石器公园','Linvo说宇宙'].includes(p.data.meta.a) ? p.data.meta.a : ''},
+      markLine:{silent:true, symbol:'none', data:[{yAxis:medV}], lineStyle:{color:'#AAB6C0',type:'dashed'}, label:{formatter:'样本均值 51.2万', fontSize:10, color:'#8B99A6'}},
+    }],
+  });
+})();
+
+/* 04 点赞率榜 + 散点 */
+function renderLike(minN){
+  const sub = ACC.filter(a => a.n >= minN).slice().sort((x,y)=>x.lr-y.lr).slice(-12);
+  const c = charts.find(x => x.getDom().id === 'c_like') || mk('c_like', {});
+  c.setOption({
+    tooltip:{trigger:'axis', ...TIP, formatter: ps => { const a = sub[ps[0].dataIndex];
+      return `<b>${a.a}</b><br/>点赞率：${a.lr}%<br/>视频数：${a.n} 条 · 均播放：${a.avg} 万`; }},
+    grid:{left:8,right:52,top:16,bottom:8,containLabel:true},
+    xAxis:{type:'value', name:'点赞率（%）', ...AXL, ...SPLIT},
+    yAxis:{type:'category', data:sub.map(a=>a.a), ...AXL, axisLabel:{color:'#41505F',fontSize:12}},
+    series:[{type:'bar', data:sub.map(a=>({value:a.lr, itemStyle:{color: a.lr>=9?AMBER:NAVY, borderRadius:[0,4,4,0]}})),
+      barWidth:14, label:{show:true, position:'right', color:'#5A6B7B', fontSize:11.5, formatter:'{c}%'}}],
+  }, true);
+}
+renderLike(2);
+document.querySelectorAll('#likeToggle button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#likeToggle button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); renderLike(+b.dataset.min);
+});
+(function(){
+  const sub = ACC.filter(a => a.n >= 2);
+  mk('c_likeScatter', {
+    tooltip:{...TIP, formatter: p => { const a = p.data.meta;
+      return `<b>${a.a}</b><br/>均播放：${a.avg} 万<br/>点赞率：${a.lr}%<br/>视频数：${a.n} 条`; }},
+    grid:{left:56,right:24,top:30,bottom:50},
+    xAxis:{type:'value', name:'平均播放量（万）— 叫座', nameLocation:'middle', nameGap:30, ...AXL, ...SPLIT},
+    yAxis:{type:'value', name:'点赞率（%）— 叫好', ...AXL, ...SPLIT},
+    series:[{
+      type:'scatter',
+      data: sub.map(a => ({ value:[a.avg, a.lr], meta:a, symbolSize: Math.min(8 + a.n*3, 32) })),
+      itemStyle:{color:TEAL, opacity:.65},
+      emphasis:{itemStyle:{color:AMBER, opacity:.95}},
+      label:{show:true, position:'top', fontSize:10, color:'#5A6B7B',
+             formatter: p => ['科学网','大圆镜科普','科学认识论','毕的二阶导','靠谱百科菌','浮世叁千问','科学透镜','悟理6'].includes(p.data.meta.a) ? p.data.meta.a : ''},
+      markLine:{silent:true, symbol:'none', data:[{yAxis:5.31}], lineStyle:{color:'#AAB6C0',type:'dashed'}, label:{formatter:'整体 5.31%', fontSize:10, color:'#8B99A6'}},
+    }],
+  });
+})();
+
+/* 05 双年活跃 */
+(function(){
+  const both = ACC.filter(a => a.y24 > 0 && a.y25 > 0).sort((x,y)=>(y.y24+y.y25)-(x.y24+x.y25));
+  mk('c_year', {
+    tooltip:{trigger:'axis', ...TIP},
+    legend:{top:0, textStyle:{color:'#5A6B7B'}},
+    grid:{left:44,right:20,top:44,bottom:60},
+    xAxis:{type:'category', data:both.map(a=>a.a), ...AXL, axisLabel:{...AXL.axisLabel, rotate:32, fontSize:11}},
+    yAxis:{type:'value', name:'10万+视频数（条）', ...AXL, ...SPLIT},
+    series:[
+      {name:'2024年', type:'bar', data:both.map(a=>a.y24), itemStyle:{color:'#7A97B8', borderRadius:[3,3,0,0]}, barGap:'10%'},
+      {name:'2025年', type:'bar', data:both.map(a=>a.y25), itemStyle:{color:AMBER, borderRadius:[3,3,0,0]}},
+    ],
+  });
+})();
+
+/* 06 TOP8 主题构成 */
+const TOP8 = ACC.slice(0, 8);
+function renderTheme(mode){
+  const c = charts.find(x => x.getDom().id === 'c_theme') || mk('c_theme', {});
+  const series = THEMES.map((th, i) => ({
+    name: th, type:'bar', stack:'t', barWidth:38,
+    itemStyle:{color:PAL[i % PAL.length]},
+    data: TOP8.map(a => {
+      const n = a.th[th] || 0;
+      return mode === 'pct' ? +(n / a.n * 100).toFixed(1) : n;
+    }),
+  }));
+  c.setOption({
+    tooltip:{trigger:'axis', ...TIP, axisPointer:{type:'shadow'}},
+    legend:{top:0, textStyle:{color:'#5A6B7B', fontSize:11}, type:'scroll'},
+    grid:{left:44,right:20,top:44,bottom:60},
+    xAxis:{type:'category', data:TOP8.map(a=>a.a), ...AXL, axisLabel:{...AXL.axisLabel, rotate:18, fontSize:11.5}},
+    yAxis:{type:'value', name: mode==='pct' ? '占比（%）' : '视频数量（条）', ...AXL, ...SPLIT, max: mode==='pct' ? 100 : null},
+    series,
+  }, true);
+}
+renderTheme('count');
+document.querySelectorAll('#themeToggle button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#themeToggle button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); renderTheme(b.dataset.m);
+});
+
+/* 07 明细表 */
+(function(){
+  let sortK = 'v', sortD = -1;
+  const tbody = document.querySelector('#acctTable tbody');
+  const note = document.getElementById('statNote');
+  function topTheme(a){ const e = Object.entries(a.th).sort((x,y)=>y[1]-x[1])[0]; return e ? e[0] : '—'; }
+  function render(){
+    const q = document.getElementById('q').value.trim();
+    const minN = +document.getElementById('minN').value;
+    let rows = ACC.filter(a => a.n >= minN && (!q || a.a.includes(q)));
+    rows.sort((x,y) => {
+      const xv = x[sortK], yv = y[sortK];
+      return (typeof xv === 'string' ? xv.localeCompare(yv, 'zh') : xv - yv) * sortD;
+    });
+    note.innerHTML = `命中 <b>${rows.length}</b> 个账号 · 合计 <b>${rows.reduce((s,a)=>s+a.v,0).toFixed(1)}</b> 万播放`;
+    tbody.innerHTML = rows.map((a,i) => `<tr>
+      <td>${i+1}</td><td style="font-weight:600;color:#1B3A5C">${a.a}</td><td>${a.n}</td>
+      <td>${a.v}</td><td>${a.avg}</td><td>${a.max}</td><td>${a.lr}</td>
+      <td>${a.y24} / ${a.y25}</td><td><span class="tag">${topTheme(a)}</span></td>
+    </tr>`).join('');
+  }
+  document.querySelectorAll('#acctTable th.sortable').forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    if (sortK === k) sortD = -sortD; else { sortK = k; sortD = k === 'a' ? 1 : -1; }
+    render();
+  });
+  document.getElementById('q').oninput = render;
+  document.getElementById('minN').onchange = render;
+  render();
+})();
+</script>
+</body>
+</html>
